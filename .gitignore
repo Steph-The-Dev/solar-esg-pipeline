@@ -1,0 +1,13 @@
+# Daten und Modelle ignorieren (werden nicht auf GitHub hochgeladen)
+data/
+models/
+outputs/
+
+# Python-spezifische Caches und temporäre Dateien ignorieren
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+
+# Virtuelle Environments und versteckte OS-Dateien ignorieren
+.env
+.DS_Store
