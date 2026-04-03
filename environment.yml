@@ -1,0 +1,29 @@
+name: solar-esg-env
+channels:
+  - pytorch
+  - nvidia
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.10
+  # Core Data Science
+  - numpy
+  - pandas
+  - matplotlib
+  - scikit-learn
+  - jupyterlab
+  # Geospatial & Computer Vision
+  - opencv
+  - rasterio
+  - geopandas
+  - shapely
+  # Deep Learning (PyTorch & Co.)
+  - pytorch
+  - torchvision
+  - pytorch-cuda=11.8
+  # Pip-Pakete
+  - pip
+  - pip:
+    - segmentation-models-pytorch
+    - albumentations
+    - captum
