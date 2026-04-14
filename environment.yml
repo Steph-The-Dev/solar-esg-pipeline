@@ -6,17 +6,18 @@ channels:
 dependencies:
   - python=3.10
   # Core Data Science
+  - jupyterlab
   - numpy
   - pandas
   - matplotlib
   - scikit-learn
-  - jupyterlab
   # Geospatial & Computer Vision
   - opencv
   - rasterio
   - geopandas
   - shapely
-  # Deep Learning (PyTorch & Co.)
+  - osmnx
+  # Deep Learning (Explizit mit GPU-Support)
   - pytorch
   - torchvision
   - pytorch-cuda=11.8
