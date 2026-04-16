@@ -5,96 +5,82 @@ import matplotlib.pyplot as plt
 import segmentation_models_pytorch as smp
 import albumentations as A
 from albumentations.pytorch import ToTensorV2
-import scipy.ndimage # NEU: Für die Pixel-Verschiebung
+import scipy.ndimage
+import logging
+import yaml
 
-def run_inference():
-    print("🧠 Lade Modell und Gewichte...")
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    
-    # 1. Architektur exakt wie im Training initialisieren
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
+
+def load_model(weights_path, device):
+    logger.info("Lade Modell und Gewichte...")
     model = smp.Unet(
         encoder_name="resnet34",
         encoder_weights=None,
         in_channels=4,
         classes=1
     ).to(device)
-    
-    # Trainierte Gewichte laden
-    model.load_state_dict(torch.load("../models/solar_unet_poc.pth", weights_only=True))
-    model.eval() # WICHTIG: Schaltet Dropout und BatchNorm ab für deterministische Vorhersagen
-    
-    print("🌍 Lade Testbild (Basel Sentinel-2)...")
-    with rasterio.open("../data/raw/basel_sentinel2_cropped.tif") as src:
+    # map_location ensures we can load GPU weights on CPU if needed
+    model.load_state_dict(torch.load(weights_path, map_location=device, weights_only=True))
+    model.eval()
+    return model
+
+def load_and_preprocess_image(image_path, normalization_factor):
+    logger.info("Lade Testbild...")
+    with rasterio.open(image_path) as src:
         img_data = src.read()
-        
-    original_c, original_h, original_w = img_data.shape
-        
-    # 2. Radiometrische Normalisierung (Muss exakt dem Training entsprechen!)
-    img_data = img_data.astype(np.float32) / 4000.0
-    img_data = np.clip(img_data, 0.0, 1.0)
-    img_transposed = np.transpose(img_data, (1, 2, 0)) # Zu (H, W, C)
     
-    # 3. Der Pad & Convert Trick für das U-Net
+    original_shape = img_data.shape
+    img_data = img_data.astype(np.float32) / normalization_factor
+    img_data = np.clip(img_data, 0.0, 1.0)
+    img_t = np.transpose(img_data, (1, 2, 0))
+    
     transform = A.Compose([
         A.PadIfNeeded(min_height=128, min_width=128, border_mode=0, fill=0), 
         ToTensorV2()
     ])
-    
-    tensor_img = transform(image=img_transposed)['image'].unsqueeze(0).to(device)
-    
-    print("⚡ Starte KI-Vorhersage auf der RTX 3080 Ti...")
-    with torch.no_grad(): # Blockiert die Gradientenberechnung -> Spart VRAM und ist massiv schneller
+    tensor_img = transform(image=img_t)['image'].unsqueeze(0)
+    return tensor_img, img_t, original_shape
+
+def predict_mask(model, tensor_img, device, threshold=0.5):
+    logger.info("Starte KI-Vorhersage...")
+    tensor_img = tensor_img.to(device)
+    with torch.no_grad():
         logits = model(tensor_img)
-        # Logits durch Sigmoid jagen -> Gibt uns Wahrscheinlichkeiten zwischen 0.0 und 1.0
         probs = torch.sigmoid(logits)
-        # Binarisierung: Alles über 50% Wahrscheinlichkeit ist ein Dach
-        prediction_mask = (probs > 0.5).squeeze().cpu().numpy()
-        
-    # Wir schneiden den schwarzen Padding-Rand wieder weg, um die Originalgröße herzustellen
-    prediction_mask = prediction_mask[:original_h, :original_w]
-    
-    print("🎨 Generiere Overlay für Stakeholder...")
-    # RGB-Bild für den visuellen Hintergrund extrahieren und normieren
-    r, g, b = img_transposed[:,:,2], img_transposed[:,:,1], img_transposed[:,:,0]
-    rgb = np.dstack((r, g, b))
-    rgb = (rgb / rgb.max() * 255).astype(np.uint8)
-    
-    # --- DER MANUELLE ALIGNMENT FIX (V2: Affine Transformation) ---
-    import scipy.ndimage # Falls du es noch nicht ganz oben importiert hast
-    
-    # 1. Deine Parameter (Hier kannst du iterieren)
-    X_VERSATZ = -7        # Positiv = rechts, Negativ = links
-    Y_VERSATZ = -6      # Positiv = unten, Negativ = oben
-    SKALIERUNG = 1.03   # 1.05 = 5% größer, 0.95 = 5% kleiner
-    
-    print(f"🔧 Wende Affine Transformation an (Skalierung: {SKALIERUNG}, X: {X_VERSATZ}px, Y: {Y_VERSATZ}px)...")
-    
-    # 2. Zentrum des Bildes berechnen (Wir wollen aus der Mitte heraus skalieren, nicht aus der Ecke)
+        prediction_mask = (probs > threshold).squeeze().cpu().numpy()
+    return prediction_mask
+
+def apply_alignment(mask, original_h, original_w, x_shift, y_shift, scale):
+    logger.info(f"Wende Affine Transformation an (Skalierung: {scale}, X: {x_shift}px, Y: {y_shift}px)...")
     center_y, center_x = original_h / 2.0, original_w / 2.0
     
-    # 3. Die Transformations-Matrix aufbauen
-    # scipy arbeitet "rückwärts" (Mapping von Output zu Input), daher teilen wir durch die Skalierung
     transform_matrix = np.array([
-        [1.0 / SKALIERUNG, 0],
-        [0, 1.0 / SKALIERUNG]
+        [1.0 / scale, 0],
+        [0, 1.0 / scale]
     ])
     
-    # 4. Den Offset berechnen (Kombination aus Skalierungs-Zentrierung und deinem manuellen Shift)
-    offset_y = center_y - (center_y / SKALIERUNG) - Y_VERSATZ
-    offset_x = center_x - (center_x / SKALIERUNG) - X_VERSATZ
+    offset_y = center_y - (center_y / scale) - y_shift
+    offset_x = center_x - (center_x / scale) - x_shift
     
-    # 5. Transformation ausführen
     aligned_mask = scipy.ndimage.affine_transform(
-        prediction_mask,
+        mask,
         matrix=transform_matrix,
         offset=[offset_y, offset_x],
-        order=0,            # Order=0 ist extrem wichtig: Es verhindert verschwommene, graue Ränder bei harten Masken
+        order=0,
         mode='constant', 
-        cval=0.0            # Alles, was "neu" ins Bild geschoben wird, wird schwarz (0.0) gefüllt
+        cval=0.0
     )
-    # ----------------------------------------------------------------
-    
-    # Plotting
+    return aligned_mask
+
+def extract_rgb(img_t):
+    r, g, b = img_t[:,:,2], img_t[:,:,1], img_t[:,:,0]
+    rgb = np.dstack((r, g, b))
+    rgb = (rgb / rgb.max() * 255).astype(np.uint8)
+    return rgb
+
+def visualize_inference(rgb, aligned_mask, x_shift, y_shift):
+    logger.info("Generiere Overlay für Stakeholder...")
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16, 8))
     
     ax1.imshow(rgb)
@@ -102,13 +88,39 @@ def run_inference():
     ax1.axis("off")
     
     ax2.imshow(rgb)
-    # WICHTIG: Wir plotten jetzt die verschobene (aligned) Maske!
     ax2.imshow(aligned_mask, cmap='Reds', alpha=0.5)
-    ax2.set_title(f"KI-Detektion (Korrigiert um X:{X_VERSATZ}, Y:{Y_VERSATZ})")
+    ax2.set_title(f"KI-Detektion (Korrigiert um X:{x_shift}, Y:{y_shift})")
     ax2.axis("off")
     
     plt.tight_layout()
     plt.show()
 
+def run_inference(config):
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    
+    model_path = config['paths']['model_weights']
+    image_path = config['paths']['sentinel_image']
+    norm_factor = config['data']['normalization_factor']
+    threshold = config['inference']['threshold']
+    
+    # Interaktiver Versatz - standard Parameter für Kommandozeile
+    x_shift, y_shift, scale = -7, -6, 1.03
+    
+    model = load_model(model_path, device)
+    tensor_img, img_t, original_shape = load_and_preprocess_image(image_path, norm_factor)
+    
+    prediction_mask_padded = predict_mask(model, tensor_img, device, threshold)
+    
+    # Remove padding
+    c, h, w = original_shape
+    prediction_mask = prediction_mask_padded[:h, :w]
+    
+    aligned_mask = apply_alignment(prediction_mask, h, w, x_shift, y_shift, scale)
+    
+    rgb = extract_rgb(img_t)
+    visualize_inference(rgb, aligned_mask, x_shift, y_shift)
+
 if __name__ == "__main__":
-    run_inference()
+    with open('../config.yaml', 'r') as f:
+        config_data = yaml.safe_load(f)
+    run_inference(config_data)

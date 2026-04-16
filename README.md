@@ -41,7 +41,6 @@ mamba env create -f environment.yml
 mamba activate solar-esg-env
 
 # 3. Execute the pipeline (Run from /src directory)
-python data_ingestion.py
 python download_sentinel.py
 python align_and_mask.py
 python train.py

@@ -17,6 +17,7 @@ dependencies:
   - geopandas
   - shapely
   - osmnx
+  - pyyaml
   # Deep Learning (Explizit mit GPU-Support)
   - pytorch
   - torchvision
