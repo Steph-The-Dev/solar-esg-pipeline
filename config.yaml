@@ -1,0 +1,22 @@
+paths:
+  sentinel_image: "../data/raw/basel_sentinel2_cropped.tif"
+  mask_image: "../data/processed/basel_roof_mask.tif"
+  model_weights: "../models/solar_unet_poc.pth"
+  osm_buildings_temp: "../data/raw/basel_buildings_raw.json" # Not used anymore but kept just in case
+
+data:
+  bbox_wgs84: [47.5550, 7.5900, 47.5650, 7.6050]
+  time_range: "2023-05-01T00:00:00Z/2023-09-30T23:59:59Z"
+  max_cloud_cover: 20
+  normalization_factor: 4000.0
+
+training:
+  patch_size: 64
+  batch_size: 8
+  epochs: 10
+  learning_rate: 0.001
+  num_patches_per_epoch: 200
+
+inference:
+  threshold: 0.5
+  patch_size: 128
