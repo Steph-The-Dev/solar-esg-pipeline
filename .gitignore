@@ -1,6 +1,8 @@
 # Daten und Modelle ignorieren (werden nicht auf GitHub hochgeladen)
 data/
+!data/raw/basel_sentinel2_cropped.tif
 models/
+!models/solar_unet_poc.pth
 outputs/
 
 # Python-spezifische Caches und temporäre Dateien ignorieren
