@@ -7,6 +7,7 @@ import albumentations as A
 from albumentations.pytorch import ToTensorV2
 import yaml
 import logging
+from pathlib import Path
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
@@ -62,11 +63,15 @@ class SolarRoofDataset(Dataset):
         return img_patch, mask_patch.long()
 
 if __name__ == "__main__":
-    with open('../config.yaml', 'r') as f:
+    SRC_DIR = Path(__file__).resolve().parent
+    ROOT_DIR = SRC_DIR.parent
+    config_path = ROOT_DIR / 'config.yaml'
+    
+    with open(config_path, 'r') as f:
         config = yaml.safe_load(f)
         
-    sat_file = config['paths']['sentinel_image']
-    mask_file = config['paths']['mask_image']
+    sat_file = str(ROOT_DIR / config['paths']['sentinel_image'])
+    mask_file = str(ROOT_DIR / config['paths']['mask_image'])
     
     training_transform = A.Compose([
         A.HorizontalFlip(p=0.5),

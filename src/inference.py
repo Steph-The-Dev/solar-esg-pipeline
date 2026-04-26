@@ -8,6 +8,7 @@ from albumentations.pytorch import ToTensorV2
 import scipy.ndimage
 import logging
 import yaml
+from pathlib import Path
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
@@ -104,7 +105,7 @@ def run_inference(config):
     threshold = config['inference']['threshold']
     
     # Interaktiver Versatz - standard Parameter für Kommandozeile
-    x_shift, y_shift, scale = -7, -6, 1.03
+    x_shift, y_shift, scale = -8, -6, 1.04
     
     model = load_model(model_path, device)
     tensor_img, img_t, original_shape = load_and_preprocess_image(image_path, norm_factor)
@@ -121,6 +122,14 @@ def run_inference(config):
     visualize_inference(rgb, aligned_mask, x_shift, y_shift)
 
 if __name__ == "__main__":
-    with open('../config.yaml', 'r') as f:
+    SRC_DIR = Path(__file__).resolve().parent
+    ROOT_DIR = SRC_DIR.parent
+    config_path = ROOT_DIR / 'config.yaml'
+    
+    with open(config_path, 'r') as f:
         config_data = yaml.safe_load(f)
+        
+    config_data['paths']['model_weights'] = str(ROOT_DIR / config_data['paths']['model_weights'])
+    config_data['paths']['sentinel_image'] = str(ROOT_DIR / config_data['paths']['sentinel_image'])
+    
     run_inference(config_data)

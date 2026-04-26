@@ -1,8 +1,8 @@
 paths:
-  sentinel_image: "../data/raw/basel_sentinel2_cropped.tif"
-  mask_image: "../data/processed/basel_roof_mask.tif"
-  model_weights: "../models/solar_unet_poc.pth"
-  osm_buildings_temp: "../data/raw/basel_buildings_raw.json" # Not used anymore but kept just in case
+  sentinel_image: "data/raw/basel_sentinel2_cropped.tif"
+  mask_image: "data/processed/basel_roof_mask.tif"
+  model_weights: "models/solar_unet_poc.pth"
+  osm_buildings_temp: "data/raw/basel_buildings_raw.json" # Not used anymore but kept just in case
 
 data:
   bbox_wgs84: [47.5550, 7.5900, 47.5650, 7.6050]

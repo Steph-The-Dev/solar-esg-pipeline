@@ -6,6 +6,7 @@ import numpy as np
 import os
 import yaml
 import logging
+from pathlib import Path
 from shapely.geometry import box
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -65,10 +66,14 @@ def create_alignment_mask(sentinel_path, output_mask_path):
     logger.info(f"Maske erfolgreich erstellt unter: {output_mask_path}")
 
 if __name__ == "__main__":
-    with open('../config.yaml', 'r') as f:
+    SRC_DIR = Path(__file__).resolve().parent
+    ROOT_DIR = SRC_DIR.parent
+    config_path = ROOT_DIR / 'config.yaml'
+    
+    with open(config_path, 'r') as f:
         config = yaml.safe_load(f)
         
-    sat_file = config['paths']['sentinel_image']
-    mask_file = config['paths']['mask_image']
+    sat_file = str(ROOT_DIR / config['paths']['sentinel_image'])
+    mask_file = str(ROOT_DIR / config['paths']['mask_image'])
     
     create_alignment_mask(sat_file, mask_file)

@@ -6,6 +6,7 @@ from rasterio.windows import from_bounds
 import os
 import yaml
 import logging
+from pathlib import Path
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
@@ -80,12 +81,16 @@ def download_sentinel2_cog(bbox_wgs84, output_path, time_range, max_cloud_cover)
     logger.info(f"Daten gespeichert unter: {output_path}")
 
 if __name__ == "__main__":
-    with open('../config.yaml', 'r') as f:
+    SRC_DIR = Path(__file__).resolve().parent
+    ROOT_DIR = SRC_DIR.parent
+    config_path = ROOT_DIR / 'config.yaml'
+    
+    with open(config_path, 'r') as f:
         config = yaml.safe_load(f)
         
     download_sentinel2_cog(
         bbox_wgs84=config['data']['bbox_wgs84'],
-        output_path=config['paths']['sentinel_image'],
+        output_path=str(ROOT_DIR / config['paths']['sentinel_image']),
         time_range=config['data']['time_range'],
         max_cloud_cover=config['data']['max_cloud_cover']
     )

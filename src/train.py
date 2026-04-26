@@ -6,6 +6,7 @@ from albumentations.pytorch import ToTensorV2
 import os
 import yaml
 import logging
+from pathlib import Path
 
 from dataset import SolarRoofDataset
 
@@ -89,6 +90,15 @@ def train_model(config):
     logger.info(f"Training abgeschlossen. Modellgewichte gespeichert unter: {save_path}")
 
 if __name__ == "__main__":
-    with open('../config.yaml', 'r') as f:
+    SRC_DIR = Path(__file__).resolve().parent
+    ROOT_DIR = SRC_DIR.parent
+    config_path = ROOT_DIR / 'config.yaml'
+    
+    with open(config_path, 'r') as f:
         config_data = yaml.safe_load(f)
+        
+    config_data['paths']['sentinel_image'] = str(ROOT_DIR / config_data['paths']['sentinel_image'])
+    config_data['paths']['mask_image'] = str(ROOT_DIR / config_data['paths']['mask_image'])
+    config_data['paths']['model_weights'] = str(ROOT_DIR / config_data['paths']['model_weights'])
+    
     train_model(config_data)

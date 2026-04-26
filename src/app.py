@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import torch
 import yaml
+from pathlib import Path
 import logging
 
 from inference import (
@@ -23,10 +24,18 @@ st.markdown("""
 """)
 st.markdown("---")
 
+# --- DYNAMISCHE PFAD-AUFLÖSUNG ---
+# Bestimmt den absoluten Pfad des src/ Ordners (dort wo app.py liegt)
+SRC_DIR = Path(__file__).resolve().parent
+# Geht einen Ordner nach oben zum Projekt-Root
+ROOT_DIR = SRC_DIR.parent
+
 # --- CACHING (Modell & Daten) ---
 @st.cache_resource
 def load_config():
-    with open('../config.yaml', 'r') as f:
+    # Baut den Pfad wasserdicht zusammen, egal von wo das Skript gestartet wird
+    config_path = ROOT_DIR / 'config.yaml'
+    with open(config_path, 'r') as f:
         return yaml.safe_load(f)
 
 config = load_config()
@@ -66,8 +75,11 @@ irradiance = st.sidebar.number_input("Einstrahlung (kWh/m²/Jahr)", value=1100, 
 co2_intensity = st.sidebar.number_input("CO₂-Intensität Strommix (kg/MWh)", value=128, help="Referenzwert: Schweizer Konsum-Mix liegt bei ca. 128 kg CO₂/MWh.")
 
 # --- INFERENCE PIPELINE ---
-model, device = load_cached_model(config['paths']['model_weights'])
-tensor_img, img_t, original_shape = load_cached_data(config['paths']['sentinel_image'], config['data']['normalization_factor'])
+model_path = str(ROOT_DIR / config['paths']['model_weights'])
+image_path = str(ROOT_DIR / config['paths']['sentinel_image'])
+
+model, device = load_cached_model(model_path)
+tensor_img, img_t, original_shape = load_cached_data(image_path, config['data']['normalization_factor'])
 
 # Vorhersage
 prediction_mask_padded = predict_mask(model, tensor_img, device, threshold)
@@ -94,7 +106,7 @@ with col1:
     if show_overlay:
         ax.imshow(final_mask, cmap='Reds', alpha=alpha)
     ax.axis('off')
-    st.pyplot(fig, use_container_width=True)
+    st.pyplot(fig, width='stretch')
     plt.close(fig) # WICHTIG: Vermeidet den Memory Leak!
 
 with col2:
