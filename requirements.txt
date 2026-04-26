@@ -1,0 +1,11 @@
+--extra-index-url https://download.pytorch.org/whl/cpu
+
+streamlit
+torch
+torchvision
+numpy
+scipy
+matplotlib
+rasterio
+segmentation-models-pytorch
+albumentations
