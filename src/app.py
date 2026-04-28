@@ -1,5 +1,13 @@
 import logging
+import sys
 from pathlib import Path
+
+# Fix for Streamlit Cloud: Add project root to sys.path
+# This allows 'from src.config_schema import ...' to work even if the app is run from inside 'src/'
+# or if 'src/' is the working directory.
+root_path = Path(__file__).resolve().parent.parent
+if str(root_path) not in sys.path:
+    sys.path.append(str(root_path))
 
 import matplotlib.pyplot as plt
 import numpy as np
