@@ -18,6 +18,8 @@ dependencies:
   - shapely
   - osmnx
   - pyyaml
+  - pytest
+  - ruff
   # Deep Learning (Explizit mit GPU-Support)
   - pytorch
   - torchvision

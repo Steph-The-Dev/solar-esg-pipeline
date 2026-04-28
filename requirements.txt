@@ -10,3 +10,5 @@ matplotlib
 rasterio
 segmentation-models-pytorch
 albumentations
+pytest
+ruff
