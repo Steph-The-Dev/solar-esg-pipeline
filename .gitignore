@@ -13,4 +13,4 @@ __pycache__/
 # Virtuelle Environments und versteckte OS-Dateien ignorieren
 .env
 .DS_Store
-.dev_notes/
+.dev_notes
