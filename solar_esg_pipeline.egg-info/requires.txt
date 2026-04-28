@@ -1,0 +1,11 @@
+torch
+torchvision
+segmentation-models-pytorch
+rasterio
+geopandas
+osmnx
+albumentations
+pyyaml
+requests
+matplotlib
+scipy

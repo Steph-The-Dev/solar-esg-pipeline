@@ -1,0 +1,31 @@
+[project]
+name = "solar-esg-pipeline"
+version = "0.1.0"
+description = "Cloud-Native Urban Deep Learning for building footprint extraction"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "torch",
+    "torchvision",
+    "segmentation-models-pytorch",
+    "rasterio",
+    "geopandas",
+    "osmnx",
+    "albumentations",
+    "pyyaml",
+    "requests",
+    "matplotlib",
+    "scipy"
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "W"]
+ignore = []
