@@ -4,12 +4,12 @@ from pathlib import Path
 import albumentations as alb
 import matplotlib.pyplot as plt
 import numpy as np
+import rasterio
 import scipy.ndimage
 import segmentation_models_pytorch as smp
 import torch
 from albumentations.pytorch import ToTensorV2
 
-import rasterio
 from src.config_schema import FullConfig, get_resolved_config
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
