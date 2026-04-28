@@ -36,6 +36,9 @@ class TrainingConfig(BaseModel):
 class InferenceConfig(BaseModel):
     threshold: float
     patch_size: int
+    x_shift: float
+    y_shift: float
+    scale: float
 
 class FullConfig(BaseModel):
     paths: PathConfig

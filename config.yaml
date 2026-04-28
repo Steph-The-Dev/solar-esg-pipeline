@@ -20,3 +20,6 @@ training:
 inference:
   threshold: 0.5
   patch_size: 128
+  x_shift: -8
+  y_shift: -6
+  scale: 1.04

@@ -60,9 +60,9 @@ threshold = st.sidebar.slider(
 )
 
 st.sidebar.header("📏 Geometric Alignment")
-x_shift = st.sidebar.number_input("X-Offset (Pixels)", value=-8)
-y_shift = st.sidebar.number_input("Y-Offset (Pixels)", value=-6)
-scale = st.sidebar.slider("Scaling Factor", 0.9, 1.1, 1.04, step=0.01)
+x_shift = st.sidebar.number_input("X-Offset (Pixels)", value=config.inference.x_shift)
+y_shift = st.sidebar.number_input("Y-Offset (Pixels)", value=config.inference.y_shift)
+scale = st.sidebar.slider("Scaling Factor", 0.9, 1.1, config.inference.scale, step=0.01)
 
 st.sidebar.header("🌱 ESG Metrics")
 avg_yield = st.sidebar.number_input("Spec. Yield (kWh/m²/year)", value=1100)

@@ -163,8 +163,10 @@ def run_inference(config: FullConfig) -> None:
     norm_factor = config.data.normalization_factor
     threshold = config.inference.threshold
 
-    # Default offsets
-    x_shift, y_shift, scale = -8, -6, 1.04
+    # Use offsets from configuration
+    x_shift = config.inference.x_shift
+    y_shift = config.inference.y_shift
+    scale = config.inference.scale
 
     model = load_model(model_path, device)
     tensor_img, img_t, original_shape = load_and_preprocess_image(image_path, norm_factor)
