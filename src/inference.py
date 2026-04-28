@@ -1,15 +1,15 @@
 import logging
 from pathlib import Path
 
-import albumentations as A
+import albumentations as alb
 import matplotlib.pyplot as plt
 import numpy as np
-import rasterio
 import scipy.ndimage
 import segmentation_models_pytorch as smp
 import torch
 from albumentations.pytorch import ToTensorV2
 
+import rasterio
 from src.config_schema import FullConfig, get_resolved_config
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
@@ -58,8 +58,8 @@ def load_and_preprocess_image(
     img_data = np.clip(img_data, 0.0, 1.0)
     img_t = np.transpose(img_data, (1, 2, 0))
 
-    transform = A.Compose(
-        [A.PadIfNeeded(min_height=128, min_width=128, border_mode=0, fill=0), ToTensorV2()]
+    transform = alb.Compose(
+        [alb.PadIfNeeded(min_height=128, min_width=128, border_mode=0, fill=0), ToTensorV2()]
     )
     tensor_img = transform(image=img_t)["image"].unsqueeze(0)
     return tensor_img, img_t, original_shape
@@ -115,7 +115,12 @@ def apply_alignment(
     offset_x = center_x - (center_x / scale) - x_shift
 
     aligned_mask = scipy.ndimage.affine_transform(
-        mask, matrix=transform_matrix, offset=[offset_y, offset_x], order=0, mode="constant", cval=0.0
+        mask,
+        matrix=transform_matrix,
+        offset=[offset_y, offset_x],
+        order=0,
+        mode="constant",
+        cval=0.0,
     )
     return aligned_mask
 

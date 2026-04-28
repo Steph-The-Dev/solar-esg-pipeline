@@ -2,7 +2,7 @@ import logging
 from pathlib import Path
 from typing import Optional, Tuple, Union
 
-import albumentations as A
+import albumentations as alb
 import numpy as np
 import rasterio
 import torch
@@ -28,7 +28,7 @@ class SolarRoofDataset(Dataset):
         mask_path: str,
         patch_size: int = 256,
         length: int = 100,
-        transform: Optional[A.Compose] = None,
+        transform: Optional[alb.Compose] = None,
         normalization_factor: float = 4000.0,
     ):
         """
@@ -99,11 +99,11 @@ if __name__ == "__main__":
 
     config: FullConfig = get_resolved_config(str(config_path), ROOT_DIR)
 
-    training_transform = A.Compose(
+    training_transform = alb.Compose(
         [
-            A.HorizontalFlip(p=0.5),
-            A.VerticalFlip(p=0.5),
-            A.RandomRotate90(p=0.5),
+            alb.HorizontalFlip(p=0.5),
+            alb.VerticalFlip(p=0.5),
+            alb.RandomRotate90(p=0.5),
             ToTensorV2(),
         ]
     )

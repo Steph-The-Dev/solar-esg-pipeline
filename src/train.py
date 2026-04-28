@@ -2,7 +2,7 @@ import logging
 import os
 from pathlib import Path
 
-import albumentations as A
+import albumentations as alb
 import segmentation_models_pytorch as smp
 import torch
 from albumentations.pytorch import ToTensorV2
@@ -28,11 +28,11 @@ def get_dataloaders(config: FullConfig) -> DataLoader:
     sat_file = config.paths.sentinel_image
     mask_file = config.paths.mask_image
 
-    train_transform = A.Compose(
+    train_transform = alb.Compose(
         [
-            A.HorizontalFlip(p=0.5),
-            A.VerticalFlip(p=0.5),
-            A.RandomRotate90(p=0.5),
+            alb.HorizontalFlip(p=0.5),
+            alb.VerticalFlip(p=0.5),
+            alb.RandomRotate90(p=0.5),
             ToTensorV2(),
         ]
     )
