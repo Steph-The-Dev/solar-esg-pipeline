@@ -60,13 +60,13 @@ threshold = st.sidebar.slider(
 )
 
 st.sidebar.header("📏 Geometric Alignment")
-x_shift = st.sidebar.number_input("X-Offset (Pixels)", value=config.inference.x_shift)
-y_shift = st.sidebar.number_input("Y-Offset (Pixels)", value=config.inference.y_shift)
+x_shift = st.sidebar.slider("X-Offset (Pixels)", -50.0, 50.0, value=float(config.inference.x_shift))
+y_shift = st.sidebar.slider("Y-Offset (Pixels)", -50.0, 50.0, value=float(config.inference.y_shift))
 scale = st.sidebar.slider("Scaling Factor", 0.9, 1.1, config.inference.scale, step=0.01)
 
 st.sidebar.header("🌱 ESG Metrics")
-avg_yield = st.sidebar.number_input("Spec. Yield (kWh/m²/year)", value=1100)
-co2_factor = st.sidebar.number_input("CO2 Intensity Mix (kg/MWh)", value=128)
+avg_yield = st.sidebar.slider("Spec. Yield (kWh/m²/year)", 500, 2000, value=1100)
+co2_factor = st.sidebar.slider("CO2 Intensity Mix (kg/MWh)", 0, 500, value=128)
 
 # --- PIPELINE EXECUTION ---
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -91,7 +91,7 @@ rgb = extract_rgb(img_t)
 
 with col1:
     st.subheader("Satellite Image (RGB)")
-    st.image(rgb, use_container_width=True)
+    st.image(rgb, width='stretch')
 
 with col2:
     st.subheader("AI Detection & ESG Potential")
