@@ -9,19 +9,19 @@ root_path = Path(__file__).resolve().parent.parent
 if str(root_path) not in sys.path:
     sys.path.append(str(root_path))
 
-import matplotlib.pyplot as plt
-import numpy as np
-import streamlit as st
-import torch
+import matplotlib.pyplot as plt  # noqa: E402
+import numpy as np  # noqa: E402
+import streamlit as st  # noqa: E402
+import torch  # noqa: E402
 
-from src.config_schema import get_resolved_config
-from src.inference import (
+from src.config_schema import get_resolved_config  # noqa: E402
+from src.inference import (  # noqa: E402
     apply_alignment,
     extract_rgb,
     predict_mask,
 )
-from src.inference import load_and_preprocess_image as inf_load_and_preprocess
-from src.inference import load_model as inf_load_model
+from src.inference import load_and_preprocess_image as inf_load_and_preprocess  # noqa: E402
+from src.inference import load_model as inf_load_model  # noqa: E402
 
 # --- CONFIGURATION ---
 logging.basicConfig(level=logging.INFO)
