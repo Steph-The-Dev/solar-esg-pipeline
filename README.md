@@ -55,7 +55,7 @@ streamlit run src/app.py
 ```
 
 ## 🧪 Testing & Quality
-We maintain a high standard of code quality through automated checks.
+Automated checks maintain a high standard of code quality.
 
 ```bash
 # Run the test suite
